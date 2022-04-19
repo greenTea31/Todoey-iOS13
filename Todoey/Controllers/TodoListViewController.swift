@@ -12,11 +12,13 @@ class TodoListViewController: UITableViewController {
     
 //    var itemArray = ["Find Mike", "Buy Eggos", "Destory Demogorgon"]
     var itemArray = [Item]()
-    let defaults = UserDefaults.standard
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        
+        
         
         let newItem = Item()
         newItem.title = "Find Mike"
@@ -30,16 +32,9 @@ class TodoListViewController: UITableViewController {
         newItem3.title = "Destroy Demogorgon"
         itemArray.append(newItem3)
         
-        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
-            itemArray = items
-        }
-        
-        for _ in 0..<50 {
-            let newItem4 = Item()
-            newItem4.title = "test"
-            newItem4.done = false
-            itemArray.append(newItem4)
-        }
+//        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
+//            itemArray = items
+//        }
     }
     
     
@@ -52,7 +47,9 @@ class TodoListViewController: UITableViewController {
             let newItem = Item()
             newItem.title = textField.text!
             self.itemArray.append(newItem)
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
+            self.saveItems()
+            
+            
             self.tableView.reloadData()
         }
         
@@ -63,6 +60,17 @@ class TodoListViewController: UITableViewController {
         
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
+    }
+    
+    func saveItems() {
+        let encoder = PropertyListEncoder()
+        
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        } catch {
+            print("Error encoding itema rray, \(error)")
+        }
     }
     
     //MARK - Tableview Datasource Methods
@@ -86,10 +94,10 @@ class TodoListViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 //        print(itemArray[indexPath.row])
-        tableView.deselectRow(at: indexPath, animated: true)
-        tableView.reloadData()
-        
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+        tableView.deselectRow(at: indexPath, animated: true)
+        saveItems()
+        tableView.reloadData()
     }
     
 
